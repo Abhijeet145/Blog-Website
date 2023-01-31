@@ -21,9 +21,10 @@ app.use(express.static("public"));
 
 //home page route
 app.get("/",function(req,res){
-  console.log(posts);
-  res.render("home",{startingContent : homeStartingContent});
+  
+  res.render("home",{startingContent : homeStartingContent,posts:posts});
 });
+
 
 //about page route
 app.get("/about",function(req,res){
@@ -35,7 +36,7 @@ app.get("/contact",function(req,res){
   res.render("contact",{contact: contactContent});
 });
 
-//compose page route
+//compose page route for get and post requests
 app.get("/compose",function(req,res){
   res.render("compose");
 });
@@ -48,7 +49,6 @@ app.post("/compose",function(req,res){
   }
   posts.push(post);
   res.redirect("/");
-  //console.log(post);
 });
 
 
