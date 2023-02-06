@@ -51,6 +51,11 @@ app.post("/compose",function(req,res){
   res.redirect("/");
 });
 
+//posts page route
+app.get("/posts/:postName",function(req,res){
+  console.log(req.params.postName);
+  res.render("home",{startingContent : homeStartingContent,posts:posts});
+});
 
 
 
