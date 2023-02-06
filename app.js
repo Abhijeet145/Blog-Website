@@ -55,6 +55,7 @@ app.post("/compose",function(req,res){
 
 //posts page route
 app.get("/posts/:postName",function(req,res){
+  console.log("I was called");
   let check = 1;
   posts.forEach(function(post){
     if(_.lowerCase(post.title) === _.lowerCase(req.params.postName))
