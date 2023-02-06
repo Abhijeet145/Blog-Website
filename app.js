@@ -55,14 +55,18 @@ app.post("/compose",function(req,res){
 
 //posts page route
 app.get("/posts/:postName",function(req,res){
-  
+  let check = 1;
   posts.forEach(function(post){
     if(_.lowerCase(post.title) === _.lowerCase(req.params.postName))
-      console.log("Match found");
+    {
+      const postTitle = post.title;
+      const postBody = post.body;
+      res.render("post",{title : postTitle,content : postBody});
+      check = 2;
+    } 
   });
-    
-
-  res.render("home",{startingContent : homeStartingContent,posts:posts});
+  if(check === 1)
+    res.send("<h1>Error 404!</h1><h3>Page not found</h3>");
 });
 
 
