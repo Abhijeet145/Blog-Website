@@ -2,6 +2,7 @@
 
 const express = require("express");
 const bodyParser = require("body-parser");
+const mongoose = require('mongoose');
 const ejs = require("ejs");
 const _ = require("lodash");
 
@@ -9,9 +10,14 @@ const homeStartingContent = "Lacus vel facilisis volutpat est velit egestas dui 
 const aboutContent = "Hac habitasse platea dictumst vestibulum rhoncus est pellentesque. Dictumst vestibulum rhoncus est pellentesque elit ullamcorper. Non diam phasellus vestibulum lorem sed. Platea dictumst quisque sagittis purus sit. Egestas sed sed risus pretium quam vulputate dignissim suspendisse. Mauris in aliquam sem fringilla. Semper risus in hendrerit gravida rutrum quisque non tellus orci. Amet massa vitae tortor condimentum lacinia quis vel eros. Enim ut tellus elementum sagittis vitae. Mauris ultrices eros in cursus turpis massa tincidunt dui.";
 const contactContent = "Scelerisque eleifend donec pretium vulputate sapien. Rhoncus urna neque viverra justo nec ultrices. Arcu dui vivamus arcu felis bibendum. Consectetur adipiscing elit duis tristique. Risus viverra adipiscing at in tellus integer feugiat. Sapien nec sagittis aliquam malesuada bibendum arcu vitae. Consequat interdum varius sit amet mattis. Iaculis nunc sed augue lacus. Interdum posuere lorem ipsum dolor sit amet consectetur adipiscing elit. Pulvinar elementum integer enim neque. Ultrices gravida dictum fusce ut placerat orci nulla. Mauris in aliquam sem fringilla ut morbi tincidunt. Tortor posuere ac ut consequat semper viverra nam libero.";
 
-const posts = [];
 
+mongoose.set('strictQuery', true);
+main().catch(err => console.log(err));
 
+async function main() {
+  await mongoose.connect('mongodb://127.0.0.1:27017/blogsiteDB');
+  // use `await mongoose.connect('mongodb://user:password@127.0.0.1:27017/test');` if your database has auth enabled
+}
 
 const app = express();
 
@@ -20,10 +26,27 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
+//post schema
+const postSchema = new mongoose.Schema({
+  title: String,
+  body: String
+});
+//post model
+const Post = mongoose.model('Post',postSchema);
+
+const posts = [];
+
 //home page route
 app.get("/",function(req,res){
   
-  res.render("home",{startingContent : homeStartingContent,posts:posts});
+  Post.find({},function(err,posts){
+    if(err){
+      console.log(err);
+    } else {
+      res.render("home",{startingContent : homeStartingContent, posts : posts});
+    }
+  });
+
 });
 
 
@@ -44,30 +67,34 @@ app.get("/compose",function(req,res){
 
 app.post("/compose",function(req,res){
 
-  const post = {
+  const post = new Post({
     title : req.body.postTitle ,
     body : req.body.postBody
-  }
-  posts.push(post);
-  res.redirect("/");
+  });
+  post.save(function(err){
+    if(!err){
+      res.redirect("/");
+    }
+  });
+  
 });
 
 
 //posts page route
-app.get("/posts/:postName",function(req,res){
-  console.log("I was called");
-  let check = 1;
-  posts.forEach(function(post){
-    if(_.lowerCase(post.title) === _.lowerCase(req.params.postName))
-    {
-      const postTitle = post.title;
-      const postBody = post.body;
+app.get("/posts/:postid",function(req,res){
+  const postid = req.params.postid;
+
+  Post.findById(postid,function(err,foundPost){
+    if(err){
+      console.log(err);
+    } else if(foundPost != null){
+      const postTitle = foundPost.title;
+      const postBody = foundPost.body;
       res.render("post",{title : postTitle,content : postBody});
-      check = 2;
-    } 
-  });
-  if(check === 1)
-    res.send("<h1>Error 404!</h1><h3>Page not found</h3>");
+    } else
+      console.log("Post doesn't exists");
+  });   
+
 });
 
 
